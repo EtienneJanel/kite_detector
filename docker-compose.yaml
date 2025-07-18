@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  kite-detector-app:
+    image: kite-detector:latest
+    build:
+      context: .
+    container_name: kite-detector
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./images:/app/images
+      - ./database:/app/database
+      - ./.env:/app/.env
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - APP_ENV=prod
+    restart: unless-stopped

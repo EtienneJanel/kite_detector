@@ -1,0 +1,2 @@
+DB_PATH: "sandbox/database/kite_detector.db"
+IMAGES_DIR: "sandbox/images"

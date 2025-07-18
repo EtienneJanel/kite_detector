@@ -1,0 +1,1 @@
+INSERT OR IGNORE INTO image_metadata (id, timestamp, folder, is_stored) VALUES (?, ?, ?, ?)

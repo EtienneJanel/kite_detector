@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Kite Detector – Recent Captures</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' };
+    </script>
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
+
+    <!-- Header -->
+    <header class="bg-white dark:bg-gray-800 shadow sticky top-0 z-10">
+
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold tracking-tight">🪁 Kite Detector</h1>
+
+            <div class="flex items-center space-x-3">
+<form id="minutes-form" method="get" class="flex items-center space-x-2">
+  <label for="minutes" class="text-sm text-gray-500 dark:text-gray-300 select-none">
+    Live: Last
+  </label>
+
+  <input
+    type="number"
+    id="minutes"
+    name="minutes"
+    value="{{ request.query_params.get('minutes', 30) }}"
+    min="1"
+    max="1440"
+    inputmode="numeric"
+    pattern="[0-9]*"
+    class="w-12 text-center text-sm font-medium cursor-pointer bg-transparent border border-transparent rounded transition
+      focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-white/90 dark:focus:bg-gray-700 dark:focus:ring-indigo-600
+      text-gray-700 dark:text-gray-200
+      appearance-none
+      hover:bg-gray-100 dark:hover:bg-gray-600"
+    title="Click to edit minutes"
+  />
+  <span class="text-sm text-gray-500 dark:text-gray-300 select-none">Minutes</span>
+</form>
+
+
+
+
+
+                <button id="theme-toggle"
+                    class="p-2 bg-white/80 dark:bg-gray-700 rounded-full shadow hover:bg-white dark:hover:bg-gray-500 transition">
+                    🌙/☀️
+                </button>
+            </div>
+        </div>
+
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Metrics Summary -->
+        <section class="mb-10 bg-white dark:bg-gray-700 rounded-lg shadow  p-6">
+            <h2 class="text-xl font-semibold mb-4">Metrics Summary</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                <div><strong>Total Captures:</strong> {{ metrics.total }}</div>
+                <div><strong>Kite Detections:</strong> {{ metrics.kite_count }}</div>
+                <div><strong>Kite Ratio:</strong> {{ metrics.kite_ratio | round(1) }}%</div>
+                <div><strong>Capture Rate:</strong> {{ metrics.capture_rate }} /min</div>
+            </div>
+        </section>
+
+        <!-- Camera Sections -->
+        {% for cam, stats in max_stat_by_folder.items() %}
+        <section class="mb-12">
+            <h2
+                class="text-xl font-semibold bg-gray-100 dark:bg-gray-800 px-2 py-1 sticky top-16 z-20 border-b border-gray-300 shadow-sm">
+                📷 Camera: {{ cam }}
+            </h2>
+
+
+            <!-- Max Stats Table -->
+            <div class="overflow-x-auto mb-4">
+                <table class="w-full bg-white dark:bg-gray-700 rounded shadow text-sm">
+                    <thead class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-100">
+                        <tr>
+                            <th class="text-left py-2 px-4">Label</th>
+                            <th class="text-left py-2 px-4">Max Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in stats %}
+                        <tr class="border-t">
+                            <td class="py-2 px-4">{{ stat.label }}</td>
+                            <td class="py-2 px-4">{{ stat.max }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if captures_by_folder[cam] %}
+            <!-- Image Slider -->
+            <div class="relative group overflow-hidden rounded-xl shadow bg-white dark:bg-gray-800"
+                id="slider-{{ cam }}">
+
+                <div class="slider-wrapper flex transition-transform duration-500">
+                    {% for cap in captures_by_folder[cam] %}
+                    <div class="slide min-w-full flex flex-col items-center">
+                        <img src="{{ cap.bbox_url }}" alt="Capture {{ cap.id }}"
+                            class="object-contain w-full max-h-[500px] rounded-xl shadow-lg transition duration-300 ease-in-out hover:scale-[1.01]">
+                        <div
+                            class="bg-gray-50 dark:bg-gray-800 w-full text-center text-sm text-gray-600 dark:text-gray-100 py-2 border-t ">
+                            ⏱️ {{ cap.timestamp }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Arrows -->
+                <div class="absolute top-1/2 -translate-y-1/2 left-2 w-10 h-10 rounded-full bg-white/70 hover:bg-white flex items-center justify-center text-xl text-gray-800 shadow cursor-pointer z-10 transition-opacity opacity-0 group-hover:opacity-100"
+                    onclick="prevSlide('{{ cam }}')">
+                    &#10094;
+                </div>
+                <div class="absolute top-1/2 -translate-y-1/2 right-2 w-10 h-10 rounded-full bg-white/70 hover:bg-white flex items-center justify-center text-xl text-gray-800 shadow cursor-pointer z-10 transition-opacity opacity-0 group-hover:opacity-100"
+                    onclick="nextSlide('{{ cam }}')">
+                    &#10095;
+                </div>
+
+
+                <!-- Dots -->
+                <div class="dots mt-3 flex justify-center gap-2">
+
+                    {% for _ in captures_by_folder[cam] %}
+                    <div class="dot w-3 h-3 bg-gray-400 rounded-full opacity-60 cursor-pointer transition-all"></div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500 italic mt-2">No captures found for this camera.</p>
+            {% endif %}
+        </section>
+        {% endfor %}
+    </main>
+
+    <!-- Slider Script -->
+    <script>
+        const sliderState = {};
+
+        function updateDots(camId) {
+            const dots = document.querySelectorAll(`#slider-${camId} .dot`);
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('bg-gray-800', index === sliderState[camId]);
+                dot.classList.toggle('bg-gray-400', index !== sliderState[camId]);
+                dot.classList.toggle('opacity-100', index === sliderState[camId]);
+                dot.classList.toggle('opacity-60', index !== sliderState[camId]);
+            });
+        }
+
+        function goToSlide(camId, index) {
+            const wrapper = document.querySelector(`#slider-${camId} .slider-wrapper`);
+            const slides = wrapper.querySelectorAll('.slide');
+            if (!(camId in sliderState)) sliderState[camId] = 0;
+
+            sliderState[camId] = index;
+            wrapper.style.transform = `translateX(-${index * 100}%)`;
+            updateDots(camId);
+        }
+
+        function nextSlide(camId) {
+            const wrapper = document.querySelector(`#slider-${camId} .slider-wrapper`);
+            const slides = wrapper.querySelectorAll('.slide');
+            if (!(camId in sliderState)) sliderState[camId] = 0;
+
+            sliderState[camId] = (sliderState[camId] + 1) % slides.length;
+            wrapper.style.transform = `translateX(-${sliderState[camId] * 100}%)`;
+            updateDots(camId);
+        }
+
+        function prevSlide(camId) {
+            const wrapper = document.querySelector(`#slider-${camId} .slider-wrapper`);
+            const slides = wrapper.querySelectorAll('.slide');
+            if (!(camId in sliderState)) sliderState[camId] = 0;
+
+            sliderState[camId] = (sliderState[camId] - 1 + slides.length) % slides.length;
+            wrapper.style.transform = `translateX(-${sliderState[camId] * 100}%)`;
+            updateDots(camId);
+        }
+
+        // Initialize
+        window.onload = () => {
+            document.querySelectorAll('[id^="slider-"]').forEach(slider => {
+                const camId = slider.id.replace('slider-', '');
+                sliderState[camId] = 0;
+                updateDots(camId);
+            });
+        };
+        const btn = document.getElementById('theme-toggle');
+        btn.onclick = () => {
+            document.documentElement.classList.toggle('dark');
+        };
+        document.getElementById("minutes").addEventListener("change", function () {
+            document.getElementById("minutes-form").submit();
+        });
+          // Make input cursor pointer and focus on click (optional)
+  const minutesInput = document.getElementById('minutes');
+  minutesInput.addEventListener('click', () => {
+    minutesInput.focus();
+  });
+    </script>
+    <style>
+    /* Remove number input arrows in most browsers */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    input[type=number] {
+        -moz-appearance: textfield; /* Firefox */
+    }
+    </style>
+</body>
+
+</html>

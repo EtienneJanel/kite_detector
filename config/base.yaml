@@ -1,0 +1,16 @@
+DB_PATH: "database/kite_detector.db"
+QUERIES: "common/sql"
+IMAGES_DIR: "images"
+DETECTIONS_DIR: "serving/detections"
+KEEP_IMAGE_FOR_TRAINING: true
+sleep_sec: 300
+number_loops: 1
+interval_capture_between_loops_sec: 15
+interval_sleep_between_cam_sec: 0.5
+
+DICT_VIDEO_URL:
+  fontedatelha: "https://video-auth1.iol.pt/beachcam/fontedatelha/playlist.m3u8"
+  bclagoaalbufeira: "https://video-auth1.iol.pt/beachcam/bclagoaalbufeira/playlist.m3u8"
+  riviera: "https://video-auth1.iol.pt/beachcam/riviera/playlist.m3u8"
+
+confidence_threshold: 0.8

@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "kite-detector"
+version = "0.1.0"
+description = "Detect kites from webcam images using CV model"
+authors = ["Etienne"]
+package-mode = false 
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.110.0"
+uvicorn = "^0.29.0"
+transformers = "^4.40.0"
+pillow = "^10.2.0"
+httpx = "^0.28.1"
+pandas = "^2.3.1"
+imagehash = "^4.3.2"
+pydantic = "^2.11.7"
+tqdm = "^4.67.1"
+loguru = "^0.7.3"
+opencv-python = "^4.12.0.88"
+python-dotenv = "^1.1.1"
+
+[tool.poetry.group.dev.dependencies]
+matplotlib = "^3.10.3"
+ipykernel = "^6.29.5"
+black = "^24.0.0"
+isort = "^5.13.2"
+pytest = "^8.2.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"

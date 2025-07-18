@@ -1,0 +1,5 @@
+start_capture_hour: 07
+end_capture_hour: 18
+
+DICT_VIDEO_URL:
+  fontedatelha: "https://video-auth1.iol.pt/beachcam/fontedatelha/playlist.m3u8"
