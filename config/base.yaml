@@ -2,15 +2,15 @@ DB_PATH: "database/kite_detector.db"
 QUERIES: "common/sql"
 IMAGES_DIR: "images"
 DETECTIONS_DIR: "serving/detections"
+STATIC_DIR: "serving/static"
+HTML_TEMPLATES_DIR: "serving/templates"
+BINARY_KITE_SENSOR_CACHE_PATH: "tmp/binary_kite_sensor_cache.json"
 KEEP_IMAGE_FOR_TRAINING: true
 sleep_sec: 300
+buffer_duration_sec: 60
+frame_interval_sec: 2
 number_loops: 1
 interval_capture_between_loops_sec: 15
 interval_sleep_between_cam_sec: 0.5
-
-DICT_VIDEO_URL:
-  fontedatelha: "https://video-auth1.iol.pt/beachcam/fontedatelha/playlist.m3u8"
-  bclagoaalbufeira: "https://video-auth1.iol.pt/beachcam/bclagoaalbufeira/playlist.m3u8"
-  riviera: "https://video-auth1.iol.pt/beachcam/riviera/playlist.m3u8"
-
 confidence_threshold: 0.8
+model_path: "training/models/spot_fdt_detector_0.0.4.pkl"

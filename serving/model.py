@@ -31,7 +31,7 @@ def predict(image_path: Union[str, Path]) -> DetectionResponse:
     raw_results = image_processor.post_process_object_detection(
         outputs,
         target_sizes=torch.tensor([(image.height, image.width)]),
-        threshold=0.5,
+        threshold=0.6,
     )
 
     detections = []

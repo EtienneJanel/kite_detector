@@ -9,10 +9,13 @@ test:
 	PYTHONPATH=$(PWD) pytest
 
 run:
-	PYTHONPATH=$(pwd) uvicorn serving.main:app --host 0.0.0.0 --port 8000 --reload
+	uvicorn serving.main:app --host 0.0.0.0 --port 8000 --reload
 
-build:
+dbuild:
 	docker build -t kite-detector .
 
-compose:
+dcompose:
 	docker compose up -d
+
+mlflow:
+	mlflow ui --port 5005

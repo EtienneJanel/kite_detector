@@ -15,11 +15,11 @@ def draw_boxes_on_image(
             label_text = f"{obj.label}: {obj.confidence}"
             box = obj.bounding_box
             if obj.label == "kite":
-                draw.rectangle(box, outline="yellow", width=1)
+                draw.rectangle(box, outline="yellow", width=2)
             elif obj.label == "person":
-                draw.rectangle(box, outline="black", width=1)
+                draw.rectangle(box, outline="black", width=2)
             else:
-                draw.rectangle(box, outline="red", width=1)
+                draw.rectangle(box, outline="red", width=2)
             draw.text((box[0], box[1] - 10), label_text, fill="black")
 
     output_path.parent.mkdir(parents=True, exist_ok=True)

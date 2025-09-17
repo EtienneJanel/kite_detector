@@ -6,7 +6,7 @@ from pydantic import BaseModel, RootModel
 class Detection(BaseModel):
     label: str
     confidence: float
-    bounding_box: List[float]  # [x1, y1, x2, y2]
+    bounding_box: List[float]  # [x0, y0, x1, y1]
 
 
 class DetectionResponse(BaseModel):

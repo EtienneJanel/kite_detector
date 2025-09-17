@@ -16,3 +16,5 @@ database/
 notebooks/
 sandbox/
 serving/detections
+mlruns/
+training/dataset/

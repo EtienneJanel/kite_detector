@@ -24,6 +24,7 @@ from config.config_loader import load_config
 CONFIG = load_config()
 
 DETECTIONS_DIR = Path(CONFIG["DETECTIONS_DIR"])
+HTML_TEMPLATES_DIR = Path(CONFIG["HTML_TEMPLATES_DIR"])
 IMAGES_DIR = Path(CONFIG["IMAGES_DIR"])
 DB_PATH = Path(CONFIG["DB_PATH"])
 confidence_threshold = CONFIG["confidence_threshold"]
@@ -31,10 +32,10 @@ confidence_threshold = CONFIG["confidence_threshold"]
 from common.utils import summarize_predictions
 
 router = APIRouter()
-templates = Jinja2Templates(directory="serving/templates")
+templates = Jinja2Templates(directory=HTML_TEMPLATES_DIR)
 
 
-@router.get("/")
+@router.get("")
 def show_results(request: Request, minutes: int = Query(30, gt=0, le=1440)):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -60,7 +61,6 @@ def show_results(request: Request, minutes: int = Query(30, gt=0, le=1440)):
     )
     rows = cursor.fetchall()
     conn.close()
-    logger.info(rows)
 
     captures_dict = defaultdict(list)
     kite_count = 0

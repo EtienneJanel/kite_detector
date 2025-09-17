@@ -30,7 +30,7 @@ RUN poetry config virtualenvs.create false \
  && poetry install --without dev --no-root
 
 # install torch CPU
-RUN pip install torch==2.3.0 --index-url https://download.pytorch.org/whl/cpu
+RUN pip install torch==2.3.0 torchvision --index-url https://download.pytorch.org/whl/cpu
 
 # Copy rest of the application
 COPY . .

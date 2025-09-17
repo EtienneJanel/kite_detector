@@ -5,12 +5,11 @@ SELECT
     max(timestamp) as END
 FROM image_metadata
 ;
-SELECT
-    *
-FROM image_metadata_archive
-limit 10
-;
--- SQLite
+-- SELECT
+--     *
+-- FROM image_metadata_archive
+-- limit 10
+-- ;
 SELECT
     date(timestamp) as date,
     folder,
