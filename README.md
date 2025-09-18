@@ -8,9 +8,16 @@
         - storage: read/write local DB and images to avoid storing unnecessary elements
         - dashboard: 
             - add swipe on images (phone)
+
 - Training
-    - kite detection fine tuning
-        - update COCO dataset to have label "38:kite" to match YOLO
+    - port training in google-collab based on https://colab.research.google.com/github/NielsRogge/Transformers-Tutorials/blob/master/YOLOS/Fine_tuning_YOLOS_for_object_detection_on_custom_dataset_(balloon).ipynb#scrollTo=9r-lMAWKWoLY
+
+# CHANGELOG
+- Training
+    - fine-tune on only 1 class
+    - add Non-Maximum Suppression (NMS) to remove overlapping bounding boxes
+    - add approximate of mAP (mean Average Precision) metric
+    - add benchmark.py script
 
 # Kite Detector
 **Objective**: Open online beach-cam to detect flying kites in images, using a fine-tuned YOLO model. Provides summary of detections and images with bounding boxes on web-page. 

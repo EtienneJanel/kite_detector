@@ -28,10 +28,10 @@ or
 ```bash
 python -m training.trainer \
     -m kite \
-    -d training/dataset/fontedatelha-2.json \
+    -d training/dataset/fontedatelha-1.json \
     -e "kite_obj_detector" \
-    -r "re-label to 38" \
-    -v "0.0.3"
+    -r "test with patch - single head detector" \
+    -v "0.0.4"
 ```
 
 open tensorboard

@@ -8,7 +8,7 @@ import cv2
 from dotenv import load_dotenv
 from loguru import logger
 
-from training.model import SpotDetector
+from serving.model import SpotDetector
 
 load_dotenv()
 

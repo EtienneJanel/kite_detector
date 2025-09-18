@@ -97,12 +97,12 @@ def kite_trainer(dataset_path, experiment_name, run_name, model_version):
     annotations = []
 
     for image_id, path in image_id_to_path.items():
-        # overwritting category 1 to 38, corresponding to "kite" in yolo
+        # Map all annotations to the single class id 0 ("kite")
         full_path = Path(path)
         image_paths.append(full_path)
         for bbox_item in image_id_to_anns[image_id]:
-            bbox_item["category_id"] = 38
-        
+            bbox_item["category_id"] = 0
+
         annotations.append(image_id_to_anns[image_id])
 
     # Train/test split

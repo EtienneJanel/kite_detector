@@ -13,4 +13,4 @@ number_loops: 1
 interval_capture_between_loops_sec: 15
 interval_sleep_between_cam_sec: 0.5
 confidence_threshold: 0.8
-model_path: "training/models/spot_fdt_detector_0.0.4.pkl"
+model_path: "models/spot_fdt_detector_0.0.4.pkl"

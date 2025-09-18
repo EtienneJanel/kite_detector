@@ -175,14 +175,24 @@ class KiteModel(BaseEstimator):
         self.processor = None
 
     def _load_model(self):
-        from transformers import AutoImageProcessor
+        from transformers import AutoImageProcessor, AutoModelForObjectDetection
+
+        # Load processor (handles resizing, normalization, label formatting)
+        self.processor = AutoImageProcessor.from_pretrained(self.model_ckpt)
+
+        # Define single-class mapping
+        id2label = {0: "kite"}
+        label2id = {"kite": 0}
 
         self.model = AutoModelForObjectDetection.from_pretrained(
             self.model_ckpt,
-            # num_labels=self.num_labels,
+            num_labels=1,
+            id2label=id2label,
+            label2id=label2id,
+            ignore_mismatched_sizes=True,
         ).to(self.device)
-        self.processor = AutoImageProcessor.from_pretrained(self.model_ckpt)
-        self.model.eval()
+
+        self.model.train()
 
     def xywh_to_xyxy_scaled(
         self, x, y, w, h, image_tensor, original_height, original_width
@@ -203,102 +213,85 @@ class KiteModel(BaseEstimator):
         return x_min, y_min, x_max, y_max
 
     def fit(self, X, y):
-        if self.model is None:
+        if self.model is None or self.processor is None:
             self._load_model()
 
-        # Format the dataset
         formatted_data = []
         for i, image_data in enumerate(X):
-            # Get processed pixel_values
-            image_tensor = image_data["pixel_values"].squeeze(0)
-            original_height, original_width = image_data["original_size"]
-
-            coco_anns = y[i]
-            boxes = []
-            class_labels = []
-            areas = []
-            image_ids = []
-            iscrowds = []
-
-            for ann in coco_anns:
-                image_ids.append(ann["image_id"])
-                x, y_, w, h = ann["bbox"]
-                x_min, y_min, x_max, y_max = self.xywh_to_xyxy_scaled(
-                    x, y_, w, h, image_tensor, original_height, original_width
+            image_path = image_data.get("image_path")
+            if image_path is None:
+                raise ValueError(
+                    "Preprocessor must include 'image_path' for each entry"
                 )
 
-                boxes.append([x_min, y_min, x_max, y_max])
+            # Re-open original image
+            image_pil = Image.open(image_path).convert("RGB")
 
-                class_labels.append(ann["category_id"])
-                areas.append(ann["area"])
-                iscrowds.append(ann["iscrowd"])
-                # logger.info(f"Original size: {original_width}x{original_height}")
-                # logger.info(f"Input size (after processor): {image_tensor.shape[1:]}")  # HxW
-                # logger.info(f"First bbox (scaled): {boxes[0]}")
-                # logger.info(f"Scaled bbox: {[x_min, y_min, x_max, y_max]}")
-                # break
+            # Get coco-style annotations for this image
+            coco_anns = y[i]
 
-
-
-            num_objs = len(class_labels)
+            # Ensure all category_ids are mapped to 0
+            for ann in coco_anns:
+                ann["category_id"] = 0
 
             target = {
-                "image_id": torch.tensor(image_ids[0], dtype=torch.int64),
-                "boxes": torch.tensor(boxes, dtype=torch.float32),
-                "class_labels": torch.tensor(class_labels, dtype=torch.int64),
-                "area": torch.tensor(areas, dtype=torch.float32),
-                "iscrowd": torch.zeros((num_objs,), dtype=torch.int64),
+                "image_id": coco_anns[0].get("image_id", i),
+                "annotations": coco_anns,
             }
 
-            formatted_data.append(
-                {
-                    "pixel_values": image_tensor,
-                    "labels": target,
-                }
+            # Use processor to build pixel_values + labels
+            encoding = self.processor(
+                images=image_pil, annotations=target, return_tensors="pt"
             )
+            pixel_values = encoding["pixel_values"].squeeze(0)  # remove batch dim
+            labels = encoding["labels"][0]  # remove batch dim
 
-        # Define a dataset
-        class CustomYOLOSDataset(torch.utils.data.Dataset):
-            def __init__(self, data):
-                self.data = data
+            formatted_data.append({"pixel_values": pixel_values, "labels": labels})
 
-            def __getitem__(self, idx):
-                return self.data[idx]
+        # Simple Dataset wrapper
+        class DetectionDataset(torch.utils.data.Dataset):
+            def __init__(self, encodings):
+                self.encodings = encodings
 
             def __len__(self):
-                return len(self.data)
+                return len(self.encodings)
 
-        dataset = CustomYOLOSDataset(formatted_data)
+            def __getitem__(self, idx):
+                return self.encodings[idx]
 
-        # Define training arguments
-        args = TrainingArguments(
-            output_dir=self.training_log_path,
-            per_device_train_batch_size=4,
-            num_train_epochs=10,
-            save_strategy="epoch",
-            logging_strategy="steps",
-            logging_steps=10,  # Adjust based on dataset size
-            logging_dir=self.training_log_path / "logs",
-            report_to=["tensorboard"],  # <--- Enable this
-        )
+        train_dataset = DetectionDataset(formatted_data)
 
-        # Custom collate function (not DefaultDataCollator!)
+        # Collator
         def collate_fn(batch):
             pixel_values = [item["pixel_values"] for item in batch]
             labels = [item["labels"] for item in batch]
             return {"pixel_values": torch.stack(pixel_values), "labels": labels}
 
-        # Trainer
+        # Training args — tuned for tiny dataset
+        args = TrainingArguments(
+            output_dir=self.training_log_path,
+            per_device_train_batch_size=1,
+            learning_rate=2.5e-5,
+            weight_decay=1e-4,
+            num_train_epochs=20,
+            save_strategy="epoch",
+            logging_strategy="steps",
+            logging_steps=10,
+            logging_dir=str(self.training_log_path / "logs"),
+            report_to=["tensorboard"],
+            remove_unused_columns=False,
+        )
+
         trainer = Trainer(
             model=self.model,
             args=args,
-            train_dataset=dataset,
             data_collator=collate_fn,
+            train_dataset=train_dataset,
+            tokenizer=self.processor,
         )
 
         trainer.train()
-        self.save_model(self.training_log_path)
-        return self
+        return trainer
 
     def predict(self, X):
         """
@@ -431,7 +424,7 @@ class KiteDetector(BaseEstimator):
         if directory_path is None:
             # Fallback to default YOLOS model
             model_ckpt = "hustvl/yolos-tiny"
-            
+
             # Create detector and load pretrained model
             detector = KiteModel(model_ckpt=model_ckpt)
             detector._load_model()  # This sets detector.model and detector.processor
@@ -440,15 +433,17 @@ class KiteDetector(BaseEstimator):
             preprocessor = KiteImagePreprocessor(model_ckpt=model_ckpt)
             preprocessor.fit([])  # Force loading AutoImageProcessor
 
-            pipeline = Pipeline([
-                ("preprocessor", preprocessor),
-                ("detector", detector),
-            ])
+            pipeline = Pipeline(
+                [
+                    ("preprocessor", preprocessor),
+                    ("detector", detector),
+                ]
+            )
 
             instance = cls(model_ckpt=model_ckpt)
             instance.pipeline = pipeline
             return instance
-        
+
         directory_path = Path(directory_path)
 
         # Load the pipeline (sklearn part)
