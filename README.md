@@ -1,5 +1,9 @@
 
 # TO DO
+- Docker
+    - last build was 30min and 9GB
+        - some libs are not used by serving (e.g. mlflow) and should be removed
+        - side task: move training in another repo
 - Serving
     - [BUG]:
         - dashboard: total kite count is incorrect (to investigate).
