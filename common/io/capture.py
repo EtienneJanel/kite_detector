@@ -54,7 +54,7 @@ def capture_single_image(video_url: str, folder: str, model_predict_fn):
 
     # Hash-based ID
     image_id = hashlib.sha256(frame.tobytes()).hexdigest()
-    timestamp = datetime.utcnow().isoformat()
+    timestamp = datetime.now().isoformat()
     # frame_resized = cv2.resize(frame, (780, 540), interpolation=cv2.INTER_LINEAR)
 
     coco_path = IMAGES_DIR / folder
@@ -121,7 +121,7 @@ def capture_oriented_frame(
         success, frame = cap.read()
         if success:
             frames.append(frame)
-            timestamps.append(datetime.utcnow().isoformat())
+            timestamps.append(datetime.now().isoformat())
         time.sleep(frame_interval_sec)
 
     cap.release()

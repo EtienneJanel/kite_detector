@@ -2,8 +2,9 @@
 # TO DO
 - Serving
     - [BUG]:
-        - dashboard: total kite count is incorrect. To investigate.
+        - dashboard: total kite count is incorrect (to investigate).
             ex: Total Captures: 2, but only 1 image. FDT works but not LDA.
+        - dashboard: "Kite Ratio: 15.0%" doesn't make sense - to clarify/fix or remove.
     - [FEATURE]:
         - storage: read/write local DB and images to avoid storing unnecessary elements
         - dashboard: 
@@ -18,6 +19,8 @@
     - add Non-Maximum Suppression (NMS) to remove overlapping bounding boxes
     - add approximate of mAP (mean Average Precision) metric
     - add benchmark.py script
+- Serving
+    - fix date format (utc to gmt)
 
 # Kite Detector
 **Objective**: Open online beach-cam to detect flying kites in images, using a fine-tuned YOLO model. Provides summary of detections and images with bounding boxes on web-page. 
